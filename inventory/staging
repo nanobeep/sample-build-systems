@@ -1,0 +1,5 @@
+[staging]
+staging.dev
+
+[staging:vars]
+ansible_ssh_user=root

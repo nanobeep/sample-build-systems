@@ -1,0 +1,45 @@
+---
+- hosts: all
+  serial: 1
+    
+  tasks:
+  
+  - name: Git checkout branch (default is master, overridable on CLI)
+    git: >
+      repo=git@github.com:nanobeep/sample-build.git
+      dest=/tmp/build
+      version={{ branch }}
+      accept_hostkey=true
+  
+  - name: Generate the 'build' (just an html page in Apache's default doc dir)
+    shell: cat /tmp/build/*.txt > /var/www/html/index.html
+  
+  # For working with memcached, see http://blog.elijaa.org/2010/05/21/memcached-telnet-command-summary/
+  # Here we're setting a numeric value to count down from
+  - name: SETUP -> memcached counter
+    shell: echo -e "set cq 0 900 2\r\n03\r\n" | nc 127.0.0.1 11211
+  
+  # Here we're decrementing the value till it gets to 0
+  - name: Check that CQ is up (fake test for countdown to 0 before continuing)
+    shell: echo -e "decr cq 1" | nc 127.0.0.1 11211
+    register: result
+    until: result.stdout == "0"
+    retries: 15
+    delay: 2
+  
+  - name: Stop Apache
+    service: name=httpd state=stopped
+  
+  - name: Double-check that Apache is really truly stopped
+    shell: /bin/systemctl status httpd
+    register: result
+    failed_when: "result.rc != 3"
+  
+  - name: Start Apache
+    service: name=httpd state=started
+  
+  - name: Double-check that Apache is really truly started
+    shell: /bin/systemctl status httpd
+    register: result
+    failed_when: "result.rc != 0"
+    

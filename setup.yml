@@ -1,0 +1,29 @@
+---
+- hosts: all
+
+  tasks:
+  
+  - name: Install required packages
+    yum: >
+      pkg="{{ item }}"
+      state=present
+    with_items:
+      - httpd
+      - memcached
+      - nmap-ncat
+      - git
+  
+  - name: Lock-down memcached access to localhost before starting it
+    lineinfile: >
+      dest=/etc/sysconfig/memcached regexp=^OPTIONS="" line=OPTIONS="-l 127.0.0.1"
+
+  - name: Start httpd
+    service: >
+      name=httpd
+      state=started
+  
+  - name: Start memcached
+    service: >
+      name=memcached
+      state=started
+      

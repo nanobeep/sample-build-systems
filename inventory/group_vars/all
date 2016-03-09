@@ -1,0 +1,8 @@
+---
+# This is where site-wide defaults should be set.
+
+# These are weak priority defaults and easy to override elsewhere (CLI, playbooks, etc).
+# For example: ansible-playbook -i inventory/staging deploy.yml --extra-vars "branch=spanish"
+
+# Build Branch
+branch: master
